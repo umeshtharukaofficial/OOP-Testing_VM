@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderator Dashboard - SLIIT Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+        .sidebar-gradient { background: linear-gradient(180deg, #064e3b 0%, #022c22 100%); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .glass-header { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800">
+    <aside class="w-72 sidebar-gradient text-white flex flex-col shadow-2xl relative z-20">
+        <div class="h-24 flex items-center justify-center border-b border-white border-opacity-10">
+            <div class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-white">SLIIT<span class="font-light">Mod</span></div>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center mb-8">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center text-xl font-bold shadow-lg">M</div>
+                <div class="ml-4">
+                    <p class="font-semibold text-white" th:text="${username}">Moderator</p>
+                    <p class="text-xs text-emerald-200">Moderator Portal</p>
+                </div>
+            </div>
+            <nav class="space-y-2">
+                <a href="/moderator-home" class="flex items-center px-4 py-3 bg-white bg-opacity-10 text-white rounded-xl font-medium">Dashboard</a>
+                <a href="/moderator/audit" class="flex items-center px-4 py-3 text-emerald-200 hover:text-white hover:bg-white hover:bg-opacity-5 rounded-xl font-medium transition-colors">Audit Requests</a>
+                <a href="/moderator/waitlist" class="flex items-center px-4 py-3 text-emerald-200 hover:text-white hover:bg-white hover:bg-opacity-5 rounded-xl font-medium transition-colors">Waitlist Queue</a>
+                <a href="/logout" class="flex items-center px-4 py-3 mt-10 text-red-300 hover:bg-red-500 hover:text-white rounded-xl font-medium transition-colors">Logout</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative z-10 overflow-y-auto">
+        <header class="h-20 glass-header flex items-center px-10 sticky top-0 z-30">
+            <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Moderator Command Center</h1>
+        </header>
+
+        <div class="p-10 max-w-7xl mx-auto w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <a href="/moderator/audit" class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 card-hover block">
+                    <div class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
+                        <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">Request Auditing</h2>
+                    <p class="text-gray-500 text-sm">Review, approve, or reject student enrollment requests. Uses Insertion Sort for chronological ordering.</p>
+                </a>
+                <a href="/moderator/waitlist" class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 card-hover block">
+                    <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                        <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    </div>
+                    <h2 class="text-xl font-bold mb-2">Waitlist Management</h2>
+                    <p class="text-gray-500 text-sm">Manage the FIFO override queue. Add, reorder, or remove students from module waitlists.</p>
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

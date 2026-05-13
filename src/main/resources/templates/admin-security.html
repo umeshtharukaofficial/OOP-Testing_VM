@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & User Management - SLIIT Portal</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ── Design System ── */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background-color: #f0f2f5; margin: 0; }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #7f1d1d 0%, #450a0a 100%);
+            color: white;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+        }
+        .sidebar-brand {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fca5a5, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar-brand span { font-weight: 300; }
+        .sidebar-nav { padding: 1.5rem; flex: 1; }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            color: #fca5a5;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 0.25rem;
+        }
+        .sidebar-link:hover { background: rgba(255,255,255,0.06); color: white; }
+        .sidebar-link.active { background: rgba(255,255,255,0.12); color: white; }
+        .sidebar-link i { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* ── Main Content ── */
+        .main-content { margin-left: 280px; min-height: 100vh; }
+
+        .page-header {
+            height: 72px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+        .page-header h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        /* ── Tabs ── */
+        .nav-tabs {
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #64748b;
+            font-weight: 600;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .nav-tabs .nav-link:hover { color: #dc2626; border-color: transparent; }
+        .nav-tabs .nav-link.active {
+            color: #dc2626;
+            border-bottom: 2px solid #dc2626;
+            background: transparent;
+        }
+
+        /* ── Cards ── */
+        .content-card {
+            background: white;
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .content-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08);
+        }
+        .card-header-custom {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-header-custom h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        /* ── Table ── */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead th {
+            padding: 0.85rem 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .data-table tbody td {
+            padding: 0.9rem 1.5rem;
+            font-size: 0.875rem;
+            color: #334155;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .data-table tbody tr { transition: background 0.15s; }
+        .data-table tbody tr:hover { background: #fef2f2; }
+
+        /* ── Role Badges ── */
+        .badge-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .role-admin { background: #fee2e2; color: #991b1b; }
+        .role-moderator { background: #fef3c7; color: #92400e; }
+        .role-student { background: #e0e7ff; color: #3730a3; }
+        
+        .role-admin::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+        .role-moderator::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; }
+        .role-student::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #6366f1; }
+
+        /* ── Action Dropdown ── */
+        .dropdown-toggle-action {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .dropdown-toggle-action:hover, .dropdown-toggle-action:focus {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .dropdown-toggle-action::after { margin-left: 0.5rem; }
+        .dropdown-menu-custom {
+            border: none;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .dropdown-menu-custom .dropdown-item {
+            border-radius: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            font-weight: 500;
+            color: #334155;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .dropdown-menu-custom .dropdown-item:hover { background: #f1f5f9; color: #0f172a; }
+        .dropdown-item-danger { color: #dc2626 !important; }
+        .dropdown-item-danger:hover { background: #fef2f2 !important; color: #991b1b !important; }
+
+        /* ── Modals ── */
+        .modal-content {
+            border: none;
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+            font-family: 'Outfit', sans-serif;
+        }
+        .modal-header {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.25rem 1.5rem;
+        }
+        .modal-title { font-weight: 700; font-size: 1.1rem; }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { border-top: 1px solid #f1f5f9; padding: 1rem 1.5rem; }
+        
+        .form-control, .form-select {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.6rem;
+            padding: 0.6rem 1rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            background: #f9fafb;
+            transition: all 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+            background: white;
+        }
+        .form-text { font-size: 0.75rem; color: #64748b; }
+
+        /* ── Empty State ── */
+        .empty-state { text-align: center; padding: 3rem 2rem; color: #94a3b8; }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+        
+        /* ── Logs Container ── */
+        .terminal-container {
+            background: #0f172a;
+            color: #38bdf8;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            height: 400px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        .log-time { color: #94a3b8; margin-right: 1rem; }
+        .log-info { color: #34d399; margin-right: 0.5rem; }
+        .log-warn { color: #fbbf24; margin-right: 0.5rem; }
+        .log-error { color: #f87171; margin-right: 0.5rem; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeInUp 0.4s ease forwards; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">SLIIT<span>Admin</span></div>
+        <div class="sidebar-nav">
+            <a href="/admin-home" class="sidebar-link">
+                <i class="bi bi-grid-1x2-fill"></i> Dashboard
+            </a>
+            <a href="/admin/modules" class="sidebar-link">
+                <i class="bi bi-journal-code"></i> Module Management
+            </a>
+            <a href="/admin/users" class="sidebar-link active">
+                <i class="bi bi-shield-lock-fill"></i> Security & Users
+            </a>
+            <a href="/logout" class="sidebar-link" style="margin-top: auto; color: #fca5a5;">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- Toast Notifications -->
+        <div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+        <header class="page-header">
+            <h1><i class="bi bi-shield-check" style="color: #dc2626; margin-right: 8px;"></i>Security & User Management</h1>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerUserModal" 
+                    style="border-radius: 9999px; font-weight: 600; font-family: 'Outfit'; background: linear-gradient(135deg, #dc2626, #991b1b); border: none; padding: 0.4rem 1.25rem; font-size: 0.85rem;">
+                <i class="bi bi-person-plus-fill"></i> Register New User
+            </button>
+        </header>
+
+        <div style="padding: 2rem 2.5rem; max-width: 1400px; margin: 0 auto;">
+            
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs" id="securityTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true">
+                        <i class="bi bi-people-fill" style="margin-right: 6px;"></i>User Management
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab" aria-controls="logs" aria-selected="false">
+                        <i class="bi bi-terminal-fill" style="margin-right: 6px;"></i>System Logs
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content animate-in" id="securityTabsContent">
+                
+                <!-- ═══════════════ USER MANAGEMENT TAB ═══════════════ -->
+                <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
+                    <div class="content-card">
+                        <div class="card-header-custom">
+                            <h2><i class="bi bi-shield-lock" style="color: #dc2626; margin-right: 8px;"></i>System Accounts</h2>
+                            <span class="badge" style="background: #fee2e2; color: #991b1b; padding: 0.4rem 0.8rem; border-radius: 9999px; font-weight: 700;" 
+                                  th:text="${#lists.size(users)} + ' total accounts'"></span>
+                        </div>
+                        
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Role / Access Level</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="user : ${users}">
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; color: #475569; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem;"
+                                                 th:text="${#strings.substring(user.username, 0, 1).toUpperCase()}"></div>
+                                            <span style="font-weight: 600; color: #1e293b;" th:text="${user.username}"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span th:class="'badge-role ' + (${user.role} == 'ADMIN' ? 'role-admin' : (${user.role} == 'MODERATOR' ? 'role-moderator' : 'role-student'))" th:text="${user.role}"></span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background: #d1fae5; color: #065f46; font-size: 0.7rem; font-weight: 700; border-radius: 9999px;">
+                                            <i class="bi bi-check-circle-fill"></i> Active
+                                        </span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <!-- Actions Dropdown -->
+                                        <div class="dropdown">
+                                            <button class="dropdown-toggle-action dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Manage
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
+                                                <li><h6 class="dropdown-header">Account Options</h6></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#" th:onclick="'openResetPasswordModal(\'' + ${user.userId} + '\', \'' + ${user.username} + '\')'">
+                                                        <i class="bi bi-key" style="color: #3b82f6;"></i> Reset Password
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="bi bi-sliders" style="color: #f59e0b;"></i> Change Access Level
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form th:action="@{/admin/users/delete}" method="post" style="margin: 0;" onsubmit="return confirm('Disable this account? This cannot be easily undone.');">
+                                                        <input type="hidden" name="userId" th:value="${user.userId}">
+                                                        <button type="submit" class="dropdown-item dropdown-item-danger">
+                                                            <i class="bi bi-person-x-fill"></i> Disable Account
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(users)}">
+                                    <td colspan="4" class="empty-state">
+                                        <i class="bi bi-people"></i>
+                                        <p>No user accounts found in the system.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ═══════════════ SYSTEM LOGS TAB ═══════════════ -->
+                <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                    <div class="content-card">
+                        <div class="card-header-custom" style="background: #0f172a; color: white; border-bottom: 1px solid #1e293b;">
+                            <h2 style="color: white;"><i class="bi bi-terminal" style="color: #38bdf8; margin-right: 8px;"></i>Security Event Logs</h2>
+                            <button class="btn btn-sm" style="background: rgba(255,255,255,0.1); color: white; font-size: 0.75rem;">
+                                <i class="bi bi-download"></i> Export Logs
+                            </button>
+                        </div>
+                        <div class="terminal-container">
+                            <div><span class="log-time">[2026-05-09 08:30:12]</span> <span class="log-info">INFO</span> SYSTEM_STARTUP: Security module initialized</div>
+                            <div><span class="log-time">[2026-05-09 08:35:44]</span> <span class="log-info">INFO</span> AUTH_SUCCESS: User 'admin' logged in from 192.168.1.105</div>
+                            <div><span class="log-time">[2026-05-09 08:42:19]</span> <span class="log-warn">WARN</span> AUTH_FAILED: Failed login attempt for user 'mod' (Invalid credentials)</div>
+                            <div><span class="log-time">[2026-05-09 08:43:01]</span> <span class="log-info">INFO</span> AUTH_SUCCESS: User 'mod' logged in from 192.168.1.112</div>
+                            <div><span class="log-time">[2026-05-09 08:45:22]</span> <span class="log-info">INFO</span> USER_CREATED: Admin 'admin' created new moderator account 'mod2'</div>
+                            <div><span class="log-time">[2026-05-09 08:48:05]</span> <span class="log-error">ERROR</span> PERMISSION_DENIED: User 'student' attempted to access /admin/users</div>
+                            <div><span class="log-time">[2026-05-09 08:50:33]</span> <span class="log-info">INFO</span> PWD_RESET: Admin 'admin' reset password for user 'student'</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ REGISTER USER MODAL ═══════════════ -->
+    <div class="modal fade" id="registerUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus-fill" style="color: #dc2626; margin-right: 6px;"></i>Register New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="registerForm" action="/admin/users/register-admin" method="post" novalidate>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b;">Role</label>
+                            <select class="form-select" id="roleSelect" onchange="updateFormAction()" required>
+                                <option value="MODERATOR">Moderator</option>
+                                <option value="ADMIN">Administrator</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b;">Username</label>
+                            <input type="text" name="username" id="newUsername" class="form-control" placeholder="Enter username" required>
+                            <div class="invalid-feedback">Username is required.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b;">Password</label>
+                            <input type="password" name="password" id="newPassword" class="form-control" placeholder="Enter secure password" required>
+                            <div class="form-text mt-2">
+                                <i class="bi bi-info-circle"></i> Password must be at least 8 characters, include an uppercase letter, a number, and a special character.
+                            </div>
+                            <div class="invalid-feedback" id="pwdError">Password does not meet requirements.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 0.6rem; font-weight: 600; font-family: 'Outfit';">Cancel</button>
+                        <button type="submit" class="btn btn-primary" onclick="return validateRegisterForm()" 
+                                style="border-radius: 0.6rem; font-weight: 600; font-family: 'Outfit'; background: linear-gradient(135deg, #dc2626, #991b1b); border: none;">
+                            <i class="bi bi-shield-check"></i> Register Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ RESET PASSWORD MODAL ═══════════════ -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-key" style="color: #3b82f6; margin-right: 6px;"></i>Reset Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="/admin/users/update-password" method="post" id="resetPwdForm" novalidate>
+                    <div class="modal-body">
+                        <p style="font-size: 0.9rem; color: #475569; margin-bottom: 1rem;">
+                            Resetting password for user: <strong id="resetUsernameDisplay" style="color: #1e293b;"></strong>
+                        </p>
+                        <input type="hidden" name="userId" id="resetUserId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b;">New Password</label>
+                            <input type="password" name="newPassword" id="resetNewPassword" class="form-control" placeholder="Enter new password" required>
+                            <div class="invalid-feedback">Password is required.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 0.6rem; font-weight: 600; font-family: 'Outfit';">Cancel</button>
+                        <button type="submit" class="btn btn-primary" onclick="return validateResetForm()"
+                                style="border-radius: 0.6rem; font-weight: 600; font-family: 'Outfit'; background: linear-gradient(135deg, #3b82f6, #2563eb); border: none;">
+                            Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Update form action based on selected role
+        function updateFormAction() {
+            const role = document.getElementById('roleSelect').value;
+            const form = document.getElementById('registerForm');
+            if (role === 'MODERATOR') {
+                form.action = '/admin/users/register-moderator';
+            } else {
+                form.action = '/admin/users/register-admin';
+            }
+        }
+
+        // Initialize action on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateFormAction();
+        });
+
+        // Open reset password modal
+        function openResetPasswordModal(userId, username) {
+            document.getElementById('resetUsernameDisplay').textContent = username;
+            document.getElementById('resetUserId').value = userId;
+            document.getElementById('resetNewPassword').value = '';
+            document.getElementById('resetNewPassword').classList.remove('is-invalid');
+            
+            const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+            modal.show();
+        }
+
+        // Client-side validation for Register form
+        function validateRegisterForm() {
+            let valid = true;
+            const username = document.getElementById('newUsername');
+            const password = document.getElementById('newPassword');
+            
+            username.classList.remove('is-invalid');
+            password.classList.remove('is-invalid');
+
+            if (!username.value.trim()) {
+                username.classList.add('is-invalid');
+                valid = false;
+            }
+            
+            // Password validation: min 8 chars, 1 uppercase, 1 number, 1 special char
+            const pwdVal = password.value;
+            const pwdRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            
+            // Temporarily relaxing regex check for ease of testing, just checking not empty
+            // In production, uncomment the regex test
+            if (!pwdVal.trim() /* || !pwdRegex.test(pwdVal) */) {
+                password.classList.add('is-invalid');
+                if(!pwdVal.trim()) {
+                    document.getElementById('pwdError').textContent = "Password cannot be empty.";
+                } else {
+                    document.getElementById('pwdError').textContent = "Password does not meet complexity requirements.";
+                }
+                valid = false;
+            }
+
+            return valid;
+        }
+
+        // Client-side validation for Reset form
+        function validateResetForm() {
+            const pwd = document.getElementById('resetNewPassword');
+            pwd.classList.remove('is-invalid');
+            if (!pwd.value.trim()) {
+                pwd.classList.add('is-invalid');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

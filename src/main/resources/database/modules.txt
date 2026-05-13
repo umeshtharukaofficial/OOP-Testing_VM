@@ -1,0 +1,6 @@
+SE2010|Object Oriented Programming|60|12
+SE2020|Data Structures and Algorithms|50|45
+SE2030|Software Architecture|40|38
+IT2040|Database Management Systems|55|20
+IT2050|Computer Networks|45|10
+SE3010|Software Engineering Project|35|35

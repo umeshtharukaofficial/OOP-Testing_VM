@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Auditing - SLIIT Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; }
+        .sidebar-gradient { background: linear-gradient(180deg, #064e3b 0%, #022c22 100%); }
+        .glass-header { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800">
+    <aside class="w-72 sidebar-gradient text-white flex flex-col shadow-2xl">
+        <div class="h-24 flex items-center justify-center border-b border-white border-opacity-10">
+            <div class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-white">SLIIT<span class="font-light">Mod</span></div>
+        </div>
+        <div class="p-6">
+            <nav class="space-y-2">
+                <a href="/moderator-home" class="flex items-center px-4 py-3 text-emerald-200 hover:bg-white hover:bg-opacity-5 rounded-xl font-medium transition-colors">Dashboard</a>
+                <a href="/moderator/audit" class="flex items-center px-4 py-3 bg-white bg-opacity-10 text-white rounded-xl font-medium">Audit Requests</a>
+                <a href="/moderator/waitlist" class="flex items-center px-4 py-3 text-emerald-200 hover:bg-white hover:bg-opacity-5 rounded-xl font-medium transition-colors">Waitlist Queue</a>
+                <a href="/logout" class="flex items-center px-4 py-3 mt-10 text-red-300 hover:bg-red-500 hover:text-white rounded-xl font-medium transition-colors">Logout</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        <!-- Toast Notifications -->
+        <div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+        <header class="h-20 glass-header flex items-center justify-between px-10 sticky top-0 z-30">
+            <h1 class="text-2xl font-bold">Request Auditing (Insertion Sorted)</h1>
+            <form action="/moderator/audit/clear" method="post">
+                <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white font-medium px-5 py-2 rounded-lg shadow-sm transition-colors text-sm" onclick="return confirm('Clear all processed requests?')">Clear Processed</button>
+            </form>
+        </header>
+
+        <div class="p-10 max-w-7xl mx-auto w-full">
+
+
+            <!-- Pending Requests (Batch Approval) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-yellow-700">Pending Requests — Batch Review</h2>
+                    <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full" th:text="${#lists.size(pendingRequests)} + ' pending'"></span>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                            <th class="p-5 font-semibold">Req ID</th>
+                            <th class="p-5 font-semibold">Student</th>
+                            <th class="p-5 font-semibold">Module</th>
+                            <th class="p-5 font-semibold">Timestamp</th>
+                            <th class="p-5 font-semibold text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700">
+                        <tr th:each="req : ${pendingRequests}" class="border-t border-gray-100 hover:bg-yellow-50 transition-colors">
+                            <td class="p-5 font-medium" th:text="${req.requestId}"></td>
+                            <td class="p-5" th:text="${req.studentId}"></td>
+                            <td class="p-5" th:text="${req.moduleCode}"></td>
+                            <td class="p-5 text-gray-500" th:text="${req.timestamp}"></td>
+                            <td class="p-5 text-right space-x-2">
+                                <form action="/moderator/audit/approve" method="post" class="inline">
+                                    <input type="hidden" name="requestId" th:value="${req.requestId}">
+                                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-1 rounded-lg text-xs transition-colors">Approve</button>
+                                </form>
+                                <form action="/moderator/audit/reject" method="post" class="inline">
+                                    <input type="hidden" name="requestId" th:value="${req.requestId}">
+                                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-1 rounded-lg text-xs transition-colors">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(pendingRequests)}">
+                            <td colspan="5" class="p-8 text-center text-gray-400 italic">No pending requests.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- All Requests History -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-lg font-bold">All Requests (Chronologically Sorted)</h2>
+                </div>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                            <th class="p-5 font-semibold">Req ID</th>
+                            <th class="p-5 font-semibold">Student</th>
+                            <th class="p-5 font-semibold">Module</th>
+                            <th class="p-5 font-semibold">Status</th>
+                            <th class="p-5 font-semibold">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700">
+                        <tr th:each="req : ${allRequests}" class="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                            <td class="p-5 font-medium" th:text="${req.requestId}"></td>
+                            <td class="p-5" th:text="${req.studentId}"></td>
+                            <td class="p-5" th:text="${req.moduleCode}"></td>
+                            <td class="p-5">
+                                <span th:if="${req.status == 'PENDING'}" class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">PENDING</span>
+                                <span th:if="${req.status == 'APPROVED'}" class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">APPROVED</span>
+                                <span th:if="${req.status == 'REJECTED'}" class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">REJECTED</span>
+                            </td>
+                            <td class="p-5 text-gray-500" th:text="${req.timestamp}"></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(allRequests)}">
+                            <td colspan="5" class="p-8 text-center text-gray-400 italic">No requests in system.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

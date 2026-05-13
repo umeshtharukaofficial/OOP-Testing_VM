@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - SLIIT Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f3f4f6; }
+        .sidebar-gradient { background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .glass-header { background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800">
+    <aside class="w-72 sidebar-gradient text-white flex flex-col shadow-2xl relative z-20">
+        <div class="h-24 flex items-center justify-center border-b border-white border-opacity-10">
+            <div class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white">SLIIT<span class="font-light">Student</span></div>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center mb-8">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-400 to-indigo-500 flex items-center justify-center text-xl font-bold shadow-lg">S</div>
+                <div class="ml-4">
+                    <p class="font-semibold text-white" th:text="${username}">Student</p>
+                    <p class="text-xs text-blue-300">Student Portal</p>
+                </div>
+            </div>
+            <nav class="space-y-2">
+                <a href="/student-home" class="flex items-center px-4 py-3 bg-white bg-opacity-10 text-white rounded-xl font-medium transition-colors">Dashboard Overview</a>
+                <a href="/student/profile" class="flex items-center px-4 py-3 text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-5 rounded-xl font-medium transition-colors">My Profile</a>
+                <a href="/student/enrollment" class="flex items-center px-4 py-3 text-blue-200 hover:text-white hover:bg-white hover:bg-opacity-5 rounded-xl font-medium transition-colors">Course Enrollment</a>
+                <a href="/logout" class="flex items-center px-4 py-3 mt-10 text-red-300 hover:bg-red-500 hover:text-white rounded-xl font-medium transition-colors">Logout</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative z-10 overflow-y-auto">
+        <header class="h-20 glass-header flex items-center justify-between px-10 sticky top-0 z-30">
+            <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Academic Overview</h1>
+            <div class="text-sm font-medium text-gray-500 bg-white px-4 py-2 rounded-full shadow-sm">Semester 1 - 2026</div>
+        </header>
+
+        <div class="p-10 max-w-7xl mx-auto w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-24 h-24 bg-blue-50 rounded-bl-full"></div>
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">My Requests</p>
+                    <div class="flex items-end">
+                        <span class="text-5xl font-extrabold text-blue-600" th:text="${#lists.size(requests)}">0</span>
+                        <span class="text-gray-400 text-sm font-medium ml-3 mb-1">total</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 card-hover">
+                    <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Quick Actions</p>
+                    <div class="mt-3 space-y-2">
+                        <a href="/student/enrollment" class="block bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-xl font-medium transition-colors text-sm">Enroll in Course</a>
+                        <a href="/student/profile" class="block bg-gray-100 hover:bg-gray-200 text-gray-700 text-center py-2 rounded-xl font-medium transition-colors text-sm">View Profile</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Requests -->
+            <h2 class="text-xl font-bold mb-6">Recent Enrollment Requests</h2>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                            <th class="p-5 font-semibold">Request ID</th>
+                            <th class="p-5 font-semibold">Module</th>
+                            <th class="p-5 font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700">
+                        <tr th:each="req : ${requests}" class="border-t border-gray-100 hover:bg-blue-50 transition-colors">
+                            <td class="p-5 font-medium" th:text="${req.requestId}"></td>
+                            <td class="p-5" th:text="${req.moduleCode}"></td>
+                            <td class="p-5">
+                                <span th:if="${req.status == 'PENDING'}" class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">PENDING</span>
+                                <span th:if="${req.status == 'APPROVED'}" class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">APPROVED</span>
+                                <span th:if="${req.status == 'REJECTED'}" class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">REJECTED</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(requests)}">
+                            <td colspan="3" class="p-8 text-center text-gray-400 italic">No requests yet. <a href="/student/enrollment" class="text-blue-600 underline">Enroll now!</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
